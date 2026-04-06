@@ -32,7 +32,7 @@ public class UserService {
         validateName(request.getName());
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Este email já existe.");
+            throw new EmailAlreadyExistsException("Email already exists.");
         }
 
 
@@ -49,11 +49,11 @@ public class UserService {
 
     private void validateEmail(String email){
 
-        if(email.isBlank() || email.isBlank()){
-            throw new InvalidEmailException("Email não pode ser vazio.");
+        if(email.isBlank() || email.isEmpty()){
+            throw new InvalidEmailException("Email can't be empty.");
         }
         if(!email.matches(EMAIL_PATTERN)){
-            throw new InvalidEmailException("Formato de email inválido");
+            throw new InvalidEmailException("Invalid email pattern.");
         }
 
     }
@@ -61,7 +61,7 @@ public class UserService {
     private void validatePassword(String password){
 
         if(password.isBlank() || password.isEmpty()){
-            throw new InvalidPasswordException("Senha não pode ser vazia.");
+            throw new InvalidPasswordException("Password can't be empty.");
         }
 
         boolean validLength = password.length() >= 8;
@@ -69,13 +69,13 @@ public class UserService {
         boolean hasNumber = password.matches(".*[0-9].*");
 
         if(!validLength || !hasLetter || !hasNumber){
-            throw new InvalidPasswordException("Senha deve conter 8 caracteres e ao menos uma letra e um número.");
+            throw new InvalidPasswordException("Password must contain at leat 8 caracters, 1 number and 1 letter.");
         }
     }
 
     private void validateName(String name){
         if(name.isBlank() || name.isEmpty()){
-            throw new BlankNameException("Nome não pode ser vazio.");
+            throw new BlankNameException("Name can't be empty.");
         }
     }
 }
