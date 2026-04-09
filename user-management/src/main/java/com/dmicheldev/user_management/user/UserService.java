@@ -1,6 +1,9 @@
 package com.dmicheldev.user_management.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +13,7 @@ import com.dmicheldev.user_management.user.exceptions.InvalidEmailException;
 import com.dmicheldev.user_management.user.exceptions.InvalidPasswordException;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private static final String EMAIL_PATTERN = 
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@" +
@@ -77,5 +80,10 @@ public class UserService {
         if(name.isBlank() || name.isEmpty()){
             throw new BlankNameException("Name can't be empty.");
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
