@@ -7,8 +7,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.dmicheldev.user_management.user.dtos.CreateUserRequest;
+import com.dmicheldev.user_management.user.dtos.LoginRequest;
+import com.dmicheldev.user_management.user.dtos.LoginResponse;
 import com.dmicheldev.user_management.user.exceptions.BlankNameException;
 import com.dmicheldev.user_management.user.exceptions.EmailAlreadyExistsException;
+import com.dmicheldev.user_management.user.exceptions.InvalidCredentialsException;
 import com.dmicheldev.user_management.user.exceptions.InvalidEmailException;
 import com.dmicheldev.user_management.user.exceptions.InvalidPasswordException;
 
@@ -48,7 +52,25 @@ public class UserService implements UserDetailsService {
         return userRepository.save(newUser);
     }
 
-    // ==== HELPER METHODS ====
+    public LoginResponse login(LoginRequest request){
+
+        User user = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(()-> new InvalidCredentialsException("Invalid email or password")); 
+
+        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
+            throw new InvalidCredentialsException("Invalid email or password ");
+        }
+
+        LoginResponse response = new LoginResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getRole()
+        );
+
+        return response;
+        
+    }
 
     private void validateEmail(String email){
 
@@ -84,6 +106,8 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        User user = userRepository.findByEmail(username)
+        .orElseThrow(() -> new UsernameNotFoundException("Username not found."));
+        return user;
     }
 }

@@ -1,4 +1,4 @@
-package com.dmicheldev.user_management.user;
+package com.dmicheldev.user_management.user.dtos;
 
 import lombok.Getter;
 import lombok.Setter;
