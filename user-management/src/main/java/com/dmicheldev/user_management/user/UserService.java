@@ -1,5 +1,7 @@
 package com.dmicheldev.user_management.user;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,8 +12,10 @@ import org.springframework.stereotype.Service;
 import com.dmicheldev.user_management.user.dtos.CreateUserRequest;
 import com.dmicheldev.user_management.user.dtos.LoginRequest;
 import com.dmicheldev.user_management.user.dtos.LoginResponse;
+import com.dmicheldev.user_management.user.dtos.UserData;
 import com.dmicheldev.user_management.user.exceptions.BlankNameException;
 import com.dmicheldev.user_management.user.exceptions.EmailAlreadyExistsException;
+import com.dmicheldev.user_management.user.exceptions.ForbiddenException;
 import com.dmicheldev.user_management.user.exceptions.InvalidCredentialsException;
 import com.dmicheldev.user_management.user.exceptions.InvalidEmailException;
 import com.dmicheldev.user_management.user.exceptions.InvalidPasswordException;
@@ -71,6 +75,18 @@ public class UserService implements UserDetailsService {
         return response;
         
     }
+
+    public List<UserData> getUsers(User user){
+
+        if(user.getRole() != UserEnum.ADMIN ){
+            throw new ForbiddenException("Access denied");
+        }
+        return userRepository.getUsers();
+    }
+
+    // ------------------------------------------------------------------------
+    // ---------------------------- HELPER METHODS ----------------------------
+    // ------------------------------------------------------------------------
 
     private void validateEmail(String email){
 

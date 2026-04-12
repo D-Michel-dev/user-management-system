@@ -1,5 +1,7 @@
 package com.dmicheldev.user_management.user;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -32,7 +34,6 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<CreateUserResponse> registerUser(@RequestBody CreateUserRequest request) {
-        
         User user = userService.registerUser(request);
 
         CreateUserResponse response = new CreateUserResponse(
@@ -47,7 +48,6 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        
         LoginResponse response = userService.login(request);
         
         return ResponseEntity.ok(response);
@@ -55,7 +55,6 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserData> getCurrentUser(Authentication authentication) {
-
             User user = (User) authentication.getPrincipal();
 
             UserData userData = new UserData(
@@ -67,5 +66,16 @@ public class UserController {
 
         return ResponseEntity.ok(userData);
     }
+
+    @GetMapping("")
+    public ResponseEntity<List<UserData>> getUsers(Authentication authentication) {
+
+        User user = (User) authentication.getPrincipal();
+
+        List<UserData> users = userService.getUsers(user);
+
+        return ResponseEntity.ok(users);
+    }
+    
     
 }
