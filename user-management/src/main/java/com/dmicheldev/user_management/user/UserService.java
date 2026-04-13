@@ -19,6 +19,7 @@ import com.dmicheldev.user_management.user.exceptions.ForbiddenException;
 import com.dmicheldev.user_management.user.exceptions.InvalidCredentialsException;
 import com.dmicheldev.user_management.user.exceptions.InvalidEmailException;
 import com.dmicheldev.user_management.user.exceptions.InvalidPasswordException;
+import com.dmicheldev.user_management.user.exceptions.UserNotFoundException;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -58,11 +59,10 @@ public class UserService implements UserDetailsService {
 
     public LoginResponse login(LoginRequest request){
 
-        User user = userRepository.findByEmail(request.getEmail())
-        .orElseThrow(()-> new InvalidCredentialsException("Invalid email or password")); 
+        User user = getUserByEmail(request.getEmail());
 
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
-            throw new InvalidCredentialsException("Invalid email or password ");
+            throw new InvalidCredentialsException("Invalid email or password.");
         }
 
         LoginResponse response = new LoginResponse(
@@ -78,10 +78,21 @@ public class UserService implements UserDetailsService {
 
     public List<UserData> getUsers(User user){
 
-        if(user.getRole() != UserEnum.ADMIN ){
-            throw new ForbiddenException("Access denied");
+        if(!isAdmin(user) ){
+            throw new ForbiddenException("Access denied.");
         }
         return userRepository.getUsers();
+    }
+
+    public void deleteUserById(Long targetUserId, User currentUser){
+
+        User targetUser = getUserById(targetUserId);
+
+        if(!canDelete(targetUser, currentUser)){
+            throw new ForbiddenException("Access denied.");
+        }
+
+        userRepository.deleteById(targetUserId);
     }
 
     // ------------------------------------------------------------------------
@@ -89,6 +100,10 @@ public class UserService implements UserDetailsService {
     // ------------------------------------------------------------------------
 
     private void validateEmail(String email){
+
+        if(email == null){
+            throw new InvalidEmailException("Email can't be empty.");
+        }
 
         if(email.isBlank() || email.isEmpty()){
             throw new InvalidEmailException("Email can't be empty.");
@@ -101,6 +116,10 @@ public class UserService implements UserDetailsService {
 
     private void validatePassword(String password){
 
+        if(password == null){
+            throw new InvalidPasswordException("Password can't be empty");
+        }
+
         if(password.isBlank() || password.isEmpty()){
             throw new InvalidPasswordException("Password can't be empty.");
         }
@@ -110,20 +129,44 @@ public class UserService implements UserDetailsService {
         boolean hasNumber = password.matches(".*[0-9].*");
 
         if(!validLength || !hasLetter || !hasNumber){
-            throw new InvalidPasswordException("Password must contain at leat 8 caracters, 1 number and 1 letter.");
+            throw new InvalidPasswordException("Password must contain at least 8 characters, 1 number and 1 letter.");
         }
     }
 
     private void validateName(String name){
+        if(name == null){
+            throw new BlankNameException("Name can't be empty");
+        }
         if(name.isBlank() || name.isEmpty()){
             throw new BlankNameException("Name can't be empty.");
         }
     }
 
+    private boolean isAdmin(User user){
+        return user.getRole() == UserEnum.ADMIN;   
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username)
-        .orElseThrow(() -> new UsernameNotFoundException("Username not found."));
+        .orElseThrow(() -> new UsernameNotFoundException("User not found."));
         return user;
+    }
+
+    private User getUserById(Long userId){
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException("User not found."));
+    }
+
+    private User getUserByEmail(String email){
+        return userRepository.findByEmail(email)
+            .orElseThrow(()-> new UserNotFoundException("User not found.")); 
+    }
+
+    private boolean canDelete(User targetUser, User currentUser){
+        if(isAdmin(targetUser)){
+            return false;
+        }
+        return currentUser.getRole() == UserEnum.ADMIN;
     }
 }
