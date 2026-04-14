@@ -14,12 +14,12 @@ public class UserValidator {
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@" +
         "(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
-    public void  validateCreateUser(CreateUserRequest request){
+    public void validateCreateUser(CreateUserRequest request){
         validateEmail(request.getEmail());
         validatePassword(request.getPassword());
         validateName(request.getName());
     }
-        private void validateEmail(String email){
+        public void validateEmail(String email){
 
         if(email == null || email.isBlank()){
             throw new InvalidEmailException("Email can't be empty.");
@@ -30,7 +30,7 @@ public class UserValidator {
 
     }
 
-    private void validatePassword(String password){
+    public void validatePassword(String password){
 
         if(password == null || password.isBlank()){
             throw new InvalidPasswordException("Password can't be empty.");
@@ -45,7 +45,7 @@ public class UserValidator {
         }
     }
 
-    private void validateName(String name){
+    public void validateName(String name){
 
         if(name == null || name.isBlank()){
             throw new BlankNameException("Name can't be empty.");

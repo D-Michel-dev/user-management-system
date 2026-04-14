@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +18,9 @@ import com.dmicheldev.user_management.user.dtos.CreateUserRequest;
 import com.dmicheldev.user_management.user.dtos.CreateUserResponse;
 import com.dmicheldev.user_management.user.dtos.LoginRequest;
 import com.dmicheldev.user_management.user.dtos.LoginResponse;
+import com.dmicheldev.user_management.user.dtos.UpdateUserRequest;
 import com.dmicheldev.user_management.user.dtos.UserData;
+
 
 
 
@@ -87,6 +90,19 @@ public class UserController {
 
         return ResponseEntity.ok().body("User deleted.");
 
+    }
+
+    @PatchMapping("/{targetUserId}")
+    public ResponseEntity<UserData> updateUser(
+        @PathVariable Long targetUserId, 
+        @RequestBody UpdateUserRequest request, 
+        Authentication authentication) {
+        
+        User currentUser = (User) authentication.getPrincipal();
+
+        UserData updatedUser = userService.updateUser(targetUserId, request, currentUser);
+
+        return ResponseEntity.ok().body(updatedUser);
     }
     
     

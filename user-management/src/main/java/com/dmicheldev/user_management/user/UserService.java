@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.dmicheldev.user_management.user.dtos.CreateUserRequest;
 import com.dmicheldev.user_management.user.dtos.LoginRequest;
 import com.dmicheldev.user_management.user.dtos.LoginResponse;
+import com.dmicheldev.user_management.user.dtos.UpdateUserRequest;
 import com.dmicheldev.user_management.user.dtos.UserData;
 import com.dmicheldev.user_management.user.exceptions.EmailAlreadyExistsException;
 import com.dmicheldev.user_management.user.exceptions.ForbiddenException;
@@ -88,23 +89,37 @@ public class UserService implements UserDetailsService {
         userRepository.deleteById(targetUserId);
     }
 
+    public UserData updateUser(Long targetUserId, UpdateUserRequest request, User currentUser){
+
+        
+        User targetUser = getUserById(targetUserId);
+        
+        if(!canUpdate(targetUser, currentUser)){
+            throw new ForbiddenException("Access denied.");
+        }
+        
+        userValidator.validateName(request.getName());
+
+        targetUser.setName(request.getName());
+        User savedUser = userRepository.save(targetUser);
+        return convertToUserData(savedUser);
+
+    }
+
     // ------------------------------------------------------------------------
     // ---------------------------- HELPER METHODS ----------------------------
     // ------------------------------------------------------------------------
 
 
 
-    private boolean isAdmin(User user){
-        return user.getRole() == UserEnum.ADMIN;   
-    }
-
+    
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username)
         .orElseThrow(() -> new UsernameNotFoundException("User not found."));
         return user;
     }
-
+    
     private User getUserById(Long userId){
         return userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException("User not found."));
@@ -115,10 +130,40 @@ public class UserService implements UserDetailsService {
             .orElseThrow(()-> new UserNotFoundException("User not found.")); 
     }
 
+    private boolean isAdmin(User user){
+        return user.getRole() == UserEnum.ADMIN;   
+    }
+
     private boolean canDelete(User targetUser, User currentUser){
         if(isAdmin(targetUser)){
             return false;
         }
         return currentUser.getRole() == UserEnum.ADMIN;
+    }
+
+    private boolean canUpdate(User targetUser, User currentUser){
+
+        boolean isSelf = targetUser.getId().equals(currentUser.getId());
+        boolean targetIsAdmin = isAdmin(targetUser);
+        boolean currentUserIsAdmin = isAdmin(currentUser);
+
+        if(isSelf){
+            return true;
+        }
+        if(targetIsAdmin){
+            return false;
+        }
+        return currentUserIsAdmin;
+        
+    }
+
+    private UserData convertToUserData(User user){
+        UserData userData = new UserData(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getRole()
+        );
+        return userData;
     }
 }
