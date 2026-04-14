@@ -85,7 +85,7 @@ public class UserController {
         User currentUser = (User) authentication.getPrincipal();
         userService.deleteUserById(targetUserId, currentUser);
 
-        return ResponseEntity.ok().body("Usuário deletado com sucesso.");
+        return ResponseEntity.ok().body("User deleted.");
 
     }
     

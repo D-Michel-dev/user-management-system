@@ -66,9 +66,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, UNEXPECTED_ERROR_MESSAGE, request);
     }
 
-    //--------------------------------------
-    //------------HELPER METHODS------------
-    //--------------------------------------
+    //=======================================
+    //============HELPER METHODS=============
+    //=======================================
 
     private ResponseEntity<ErrorResponse> buildError(
         HttpStatus status, 
