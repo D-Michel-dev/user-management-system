@@ -1,7 +1,7 @@
 package com.dmicheldev.user_management.user;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,6 +18,7 @@ import com.dmicheldev.user_management.user.dtos.CreateUserRequest;
 import com.dmicheldev.user_management.user.dtos.CreateUserResponse;
 import com.dmicheldev.user_management.user.dtos.LoginRequest;
 import com.dmicheldev.user_management.user.dtos.LoginResponse;
+import com.dmicheldev.user_management.user.dtos.PagedResponse;
 import com.dmicheldev.user_management.user.dtos.UpdateUserRequest;
 import com.dmicheldev.user_management.user.dtos.UserData;
 
@@ -73,13 +74,21 @@ public class UserController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<UserData>> getUsers(Authentication authentication) {
+    public ResponseEntity<PagedResponse<UserData>> getUsers(Authentication authentication, Pageable pageable) {
 
         User user = (User) authentication.getPrincipal();
 
-        List<UserData> users = userService.getUsers(user);
+        Page<UserData> page = userService.getUsers(user, pageable);
 
-        return ResponseEntity.ok(users);
+        PagedResponse<UserData> response = new PagedResponse<>(
+            page.getContent(),
+            page.getNumber(),
+            page.getSize(),
+            page.getTotalElements(),
+            page.getTotalPages()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{targetUserId}")

@@ -1,7 +1,7 @@
 package com.dmicheldev.user_management.user;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -70,12 +70,12 @@ public class UserService implements UserDetailsService {
         
     }
 
-    public List<UserData> getUsers(User user){
+    public Page<UserData> getUsers(User user, Pageable pageable){
 
         if(!isAdmin(user) ){
             throw new ForbiddenException("Access denied.");
         }
-        return userRepository.getUsers();
+        return userRepository.findAllUserData(pageable);
     }
 
     public void deleteUserById(Long targetUserId, User currentUser){
@@ -166,4 +166,5 @@ public class UserService implements UserDetailsService {
         );
         return userData;
     }
+
 }
