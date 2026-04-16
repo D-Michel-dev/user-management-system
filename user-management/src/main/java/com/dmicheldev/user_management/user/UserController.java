@@ -15,16 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dmicheldev.user_management.user.dtos.CreateUserRequest;
-import com.dmicheldev.user_management.user.dtos.CreateUserResponse;
 import com.dmicheldev.user_management.user.dtos.LoginRequest;
 import com.dmicheldev.user_management.user.dtos.LoginResponse;
 import com.dmicheldev.user_management.user.dtos.PagedResponse;
 import com.dmicheldev.user_management.user.dtos.UpdateUserRequest;
 import com.dmicheldev.user_management.user.dtos.UserData;
-
-
-
-
 
 
 @RestController
@@ -39,66 +34,46 @@ public class UserController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<CreateUserResponse> registerUser(@RequestBody CreateUserRequest request) {
-        User user = userService.registerUser(request);
+    public ResponseEntity<UserData> registerUser(@RequestBody CreateUserRequest request) {
 
-        CreateUserResponse response = new CreateUserResponse(
-            user.getId(),
-            user.getName(),
-            user.getEmail(),
-            user.getRole()
-        );
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        UserData newUser = userService.registerUser(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+
         LoginResponse response = userService.login(request);
-        
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserData> getCurrentUser(Authentication authentication) {
-            User user = (User) authentication.getPrincipal();
 
-            UserData userData = new UserData(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole()
-            );
+        UserData userData = userService.getMe(authentication);
 
         return ResponseEntity.ok(userData);
     }
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<PagedResponse<UserData>> getUsers(Authentication authentication, Pageable pageable) {
 
-        User user = (User) authentication.getPrincipal();
+        User user = userService.getAuthenticatedUser(authentication);
 
         Page<UserData> page = userService.getUsers(user, pageable);
-
-        PagedResponse<UserData> response = new PagedResponse<>(
-            page.getContent(),
-            page.getNumber(),
-            page.getSize(),
-            page.getNumberOfElements(),
-            page.getTotalElements(),
-            page.getTotalPages()
-        );
+        PagedResponse<UserData> response = userService.convertToPagedResponse(page);
 
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{targetUserId}")
-    public ResponseEntity<String> deleteUserById(@PathVariable Long targetUserId, Authentication authentication){
+    public ResponseEntity<Void> deleteUserById(@PathVariable Long targetUserId, Authentication authentication){
 
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = userService.getAuthenticatedUser(authentication);
         userService.deleteUserById(targetUserId, currentUser);
 
-        return ResponseEntity.ok().body("User deleted.");
+        return ResponseEntity.noContent().build();
 
     }
 
@@ -108,7 +83,7 @@ public class UserController {
         @RequestBody UpdateUserRequest request, 
         Authentication authentication) {
         
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = userService.getAuthenticatedUser(authentication);
 
         UserData updatedUser = userService.updateUser(targetUserId, request, currentUser);
 

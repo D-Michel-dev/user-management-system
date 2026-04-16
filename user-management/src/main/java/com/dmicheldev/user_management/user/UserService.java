@@ -2,6 +2,7 @@ package com.dmicheldev.user_management.user;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.dmicheldev.user_management.user.dtos.CreateUserRequest;
 import com.dmicheldev.user_management.user.dtos.LoginRequest;
 import com.dmicheldev.user_management.user.dtos.LoginResponse;
+import com.dmicheldev.user_management.user.dtos.PagedResponse;
 import com.dmicheldev.user_management.user.dtos.UpdateUserRequest;
 import com.dmicheldev.user_management.user.dtos.UserData;
 import com.dmicheldev.user_management.user.exceptions.EmailAlreadyExistsException;
@@ -33,7 +35,7 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User registerUser(CreateUserRequest request) {
+    public UserData registerUser(CreateUserRequest request) {
 
         userValidator.validateCreateUser(request);
 
@@ -47,27 +49,27 @@ public class UserService implements UserDetailsService {
         newUser.setEmail(request.getEmail());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setRole(UserEnum.USER);
+        User savedUser = userRepository.save(newUser);
 
-        return userRepository.save(newUser);
+        return convertToUserData(savedUser);
+
     }
 
     public LoginResponse login(LoginRequest request){
 
-        User user = getUserByEmail(request.getEmail());
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(()-> new InvalidCredentialsException("Invalid email or password."));
 
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
             throw new InvalidCredentialsException("Invalid email or password.");
         }
 
-        LoginResponse response = new LoginResponse(
+        return new LoginResponse(
             user.getId(),
             user.getName(),
             user.getEmail(),
             user.getRole()
-        );
-
-        return response;
-        
+        );        
     }
 
     public Page<UserData> getUsers(User user, Pageable pageable){
@@ -76,6 +78,11 @@ public class UserService implements UserDetailsService {
             throw new ForbiddenException("Access denied.");
         }
         return userRepository.findAllUserData(pageable);
+    }
+
+    public UserData getMe(Authentication authentication){
+        User user = getAuthenticatedUser(authentication);
+        return convertToUserData(user);
     }
 
     public void deleteUserById(Long targetUserId, User currentUser){
@@ -125,9 +132,14 @@ public class UserService implements UserDetailsService {
             .orElseThrow(() -> new UserNotFoundException("User not found."));
     }
 
-    private User getUserByEmail(String email){
+    public User getUserByEmail(String email){
         return userRepository.findByEmail(email)
             .orElseThrow(()-> new UserNotFoundException("User not found.")); 
+    }
+
+    public User getAuthenticatedUser(Authentication authentication){
+        String email = authentication.getName();
+        return getUserByEmail(email);
     }
 
     private boolean isAdmin(User user){
@@ -165,6 +177,19 @@ public class UserService implements UserDetailsService {
             user.getRole()
         );
         return userData;
+    }
+
+    public PagedResponse<UserData> convertToPagedResponse(Page<UserData> page){
+
+        PagedResponse<UserData> response = new PagedResponse<>(
+            page.getContent(),
+            page.getNumber(),
+            page.getSize(),
+            page.getNumberOfElements(),
+            page.getTotalElements(),
+            page.getTotalPages()
+        );
+        return response;
     }
 
 }
