@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 public class PagedResponse<T> {
     private List<T> content;
     private int page;
-    private int size;
+    private int pageSize;
+    private int numberOfElements;
     private Long totalElements;
     private int totalPages;
 }

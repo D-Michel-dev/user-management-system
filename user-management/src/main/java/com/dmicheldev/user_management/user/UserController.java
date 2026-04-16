@@ -84,6 +84,7 @@ public class UserController {
             page.getContent(),
             page.getNumber(),
             page.getSize(),
+            page.getNumberOfElements(),
             page.getTotalElements(),
             page.getTotalPages()
         );
