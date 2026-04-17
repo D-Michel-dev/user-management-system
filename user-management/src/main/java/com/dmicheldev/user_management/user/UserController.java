@@ -21,6 +21,8 @@ import com.dmicheldev.user_management.user.dtos.PagedResponse;
 import com.dmicheldev.user_management.user.dtos.UpdateUserRequest;
 import com.dmicheldev.user_management.user.dtos.UserData;
 
+import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -34,7 +36,7 @@ public class UserController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<UserData> registerUser(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserData> registerUser(@Valid @RequestBody CreateUserRequest request) {
 
         UserData newUser = userService.registerUser(request);
 
@@ -79,14 +81,12 @@ public class UserController {
 
     @PatchMapping("/{targetUserId}")
     public ResponseEntity<UserData> updateUser(
-        @PathVariable Long targetUserId, 
-        @RequestBody UpdateUserRequest request, 
+        @PathVariable Long targetUserId,
+        @Valid @RequestBody UpdateUserRequest request, 
         Authentication authentication) {
         
         User currentUser = userService.getAuthenticatedUser(authentication);
-
         UserData updatedUser = userService.updateUser(targetUserId, request, currentUser);
-
         return ResponseEntity.ok().body(updatedUser);
     }
     

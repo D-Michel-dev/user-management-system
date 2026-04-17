@@ -19,30 +19,24 @@ import com.dmicheldev.user_management.user.exceptions.EmailAlreadyExistsExceptio
 import com.dmicheldev.user_management.user.exceptions.ForbiddenException;
 import com.dmicheldev.user_management.user.exceptions.InvalidCredentialsException;
 import com.dmicheldev.user_management.user.exceptions.UserNotFoundException;
-import com.dmicheldev.user_management.user.validators.UserValidator;
 
 @Service
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserValidator userValidator;
 
 
-    public UserService(UserRepository userRepository, UserValidator userValidator, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.userValidator = userValidator;
         this.passwordEncoder = passwordEncoder;
     }
 
     public UserData registerUser(CreateUserRequest request) {
 
-        userValidator.validateCreateUser(request);
-
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException("Email already exists.");
         }
-
 
         User newUser = new User();
         newUser.setName(request.getName());
@@ -52,7 +46,6 @@ public class UserService implements UserDetailsService {
         User savedUser = userRepository.save(newUser);
 
         return convertToUserData(savedUser);
-
     }
 
     public LoginResponse login(LoginRequest request){
@@ -105,8 +98,6 @@ public class UserService implements UserDetailsService {
             throw new ForbiddenException("Access denied.");
         }
         
-        userValidator.validateName(request.getName());
-
         targetUser.setName(request.getName());
         User savedUser = userRepository.save(targetUser);
         return convertToUserData(savedUser);
