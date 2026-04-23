@@ -9,10 +9,16 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfigurations {
+
+    private final SecurityFilter securityFilter;
+    public SecurityConfigurations(SecurityFilter securityFilter){
+        this.securityFilter = securityFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -20,17 +26,18 @@ public class SecurityConfigurations {
     }
     
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http){
         return http
         .csrf(csrf -> csrf.disable())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
             .requestMatchers(HttpMethod.POST,"/api/users/login").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
             .anyRequest().authenticated()
         )
-        .httpBasic(httpBasic -> {})
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
     }
 }

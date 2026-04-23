@@ -1,5 +1,6 @@
 package com.dmicheldev.user_management.user;
 
+import com.dmicheldev.user_management.security.TokenService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -25,11 +26,13 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
     public UserData registerUser(CreateUserRequest request) {
@@ -57,11 +60,14 @@ public class UserService implements UserDetailsService {
             throw new InvalidCredentialsException("Invalid email or password.");
         }
 
+        String token = tokenService.generateToken(user);
+
         return new LoginResponse(
             user.getId(),
             user.getName(),
             user.getEmail(),
-            user.getRole()
+            user.getRole(),
+                token
         );        
     }
 
