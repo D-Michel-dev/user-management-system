@@ -14,8 +14,11 @@ import java.time.temporal.ChronoUnit;
 @Service
 public class TokenService {
 
-    @Value("${jwt.secret:default_secret}")
+    @Value("${jwt.secret}")
     private String secret;
+
+    @Value("${jwt.expiration.hours:2}")
+    private int expirationHours;
 
     private static final String ISSUER = "user-management-api";
 
