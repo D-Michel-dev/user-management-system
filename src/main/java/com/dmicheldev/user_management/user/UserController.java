@@ -1,6 +1,9 @@
 package com.dmicheldev.user_management.user;
 
+import com.dmicheldev.user_management.exceptions.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,9 +49,21 @@ public class UserController {
             description = "Creates a new user account. Validates input data, ensures email uniqueness, and returns non-sensitive user data."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User successfully created"),
-            @ApiResponse(responseCode = "400", description = "Invalid or missing fields"),
-            @ApiResponse(responseCode = "409", description = "Email already exists")
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "User successfully created",
+                    content = @Content(schema = @Schema(implementation = UserData.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid or missing fields",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Email already exists",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
     })
     @PostMapping("/register")
     public ResponseEntity<UserData> registerUser(@Valid @RequestBody CreateUserRequest request) {
@@ -60,12 +75,24 @@ public class UserController {
 
     @Operation(
             summary = "Authenticate user",
-            description = "Authenticates a user using email and password. Returns user data along with authentication information."
+            description = "Authenticates a user using email and password and returns a JWT token along with user data."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Authentication successful"),
-            @ApiResponse(responseCode = "400", description = "Invalid request body"),
-            @ApiResponse(responseCode = "401", description = "Invalid email or password")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Authentication successful",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request body",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Invalid email or password",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -80,8 +107,16 @@ public class UserController {
             description = "Returns the authenticated user's data based on the provided JWT token."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User data retrieved successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User data retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = UserData.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - missing or invalid token",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
     })
     @GetMapping("/me")
     public ResponseEntity<UserData> getCurrentUser(Authentication authentication) {
@@ -93,12 +128,24 @@ public class UserController {
 
     @Operation(
             summary = "List users",
-            description = "Returns a paginated list of users. Only users with ADMIN role can access this endpoint."
+            description = "Returns a paginated list of users. Requires ADMIN role."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Users retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = PagedResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - missing or invalid token",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
     })
     @GetMapping
     public ResponseEntity<PagedResponse<UserData>> getUsers(Authentication authentication, Pageable pageable) {
@@ -116,9 +163,21 @@ public class UserController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "User deleted successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - missing or invalid token",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
     })
     @DeleteMapping("/{targetUserId}")
     public ResponseEntity<Void> deleteUserById(
@@ -134,14 +193,34 @@ public class UserController {
 
     @Operation(
             summary = "Update user",
-            description = "Updates user data. Users can update their own profile. Admins can update non-admin users. Admin profiles cannot be updated by others."
+            description = "Updates user data. Users can update their own profile. Admins can update non-admin users."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User updated successfully",
+                    content = @Content(schema = @Schema(implementation = UserData.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid input data",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - missing or invalid token",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
     })
     @PatchMapping("/{targetUserId}")
     public ResponseEntity<UserData> updateUser(
