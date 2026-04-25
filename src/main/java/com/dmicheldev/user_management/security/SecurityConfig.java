@@ -14,8 +14,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
-    public SecurityConfig(SecurityFilter securityFilter){
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    public SecurityConfig(SecurityFilter securityFilter,
+                          CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                          CustomAccessDeniedHandler customAccessDeniedHandler){
         this.securityFilter = securityFilter;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
     }
 
     @Bean
@@ -28,9 +35,16 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
             .requestMatchers(HttpMethod.POST,"/api/users/login").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.GET,
+                    "/swagger-ui/index.html",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**").permitAll()
             .anyRequest().authenticated()
         )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+        .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler))
+        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
     }
 }

@@ -46,6 +46,6 @@ public class TokenService {
     }
 
     private Instant generateExpireDate(){
-        return Instant.now().plus(2,ChronoUnit.HOURS);
+        return Instant.now().plus(expirationHours,ChronoUnit.HOURS);
     }
 }
