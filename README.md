@@ -1,174 +1,142 @@
-# 🚀 User Management API
+# User Management API
 
-A production-ready REST API for user management built with **Java + Spring Boot**, focusing on clean architecture, security, and real-world backend practices.
+REST API for user management with authentication and authorization using JWT.
 
----
-
-## 📌 Overview
-
-This project simulates a real backend system where users can be managed securely with proper authentication, authorization, validation, and pagination.
-
-It was designed to demonstrate backend fundamentals expected from a junior developer in a professional environment.
+This project was built as part of my backend learning journey, focusing on clean architecture, security, and good API practices.
 
 ---
 
-## ✨ Key Features
+## 🧠 Features
 
-* 🔐 User registration with validation
-* 🔑 Authentication with encrypted passwords (BCrypt)
-* 🛡️ Role-based authorization (USER / ADMIN)
-* 👤 Get current authenticated user
-* 📄 Paginated user listing (ADMIN only)
-* ✏️ Update user with business rules
-* ❌ Delete users with authorization checks
-* ⚠️ Global exception handling with standardized responses
-* 🧠 Clean separation of concerns (Controller / Service / Repository)
+- User registration with validation
+- Authentication with JWT
+- Role-based authorization (USER / ADMIN)
+- Get current authenticated user
+- Update user data with permission rules
+- Delete users (admin only)
+- Paginated user listing
+- Global error handling
+- Custom security error handling (401 / 403)
+- API documentation with Swagger
 
 ---
 
-## 🧠 Business Rules Implemented
+## 🔐 Authentication
 
-* Users can only update their own profile
-* Admins can manage regular users
-* Admin accounts cannot be modified by others
-* Duplicate emails are not allowed
-* Password must meet complexity requirements
+This API uses JWT for authentication.
+
+After login, you'll receive a token that must be included in requests:
+
+
+Authorization: Bearer YOUR_TOKEN
+
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Java 25**
-* **Spring Boot**
-* **Spring Security**
-* **Spring Data JPA**
-* **PostgreSQL**
-* **Maven**
+- Java 25
+- Spring Boot
+- Spring Security
+- JWT (Auth0)
+- Spring Data JPA
+- PostgreSQL
+- Swagger (OpenAPI)
 
 ---
 
-## 📂 Architecture
+## 📁 Project Structure
 
-Feature-based structure focused on scalability:
+The project follows a **feature-based structure**, where each domain contains its own:
 
-```id="9ldf2k"
-user/
- ├── controller      # HTTP layer
- ├── service         # business logic
- ├── repository      # data access
- ├── dtos            # request/response models
- ├── exceptions      # custom exceptions
- ├── validator       # input validation logic
-```
+- controller
+- service
+- repository
+- dtos
+- exceptions
+
+This keeps things organized and scalable as the project grows.
 
 ---
 
-## 🔐 Security
+## 📌 Main Endpoints
 
-* Password hashing with BCrypt
-* Endpoint protection via Spring Security
-* Role-based access control
-* Centralized exception handling to prevent sensitive data leaks
+### 🔓 Public
 
----
+- `POST /api/users/register` → create account  
+- `POST /api/users/login` → authenticate user  
 
-## 📡 API Endpoints
+### 🔒 Protected
 
-### 🔑 Authentication
-
-* `POST /api/auth/register` → Register new user
-* `POST /api/auth/login` → Authenticate user
+- `GET /api/users/me` → current user  
+- `GET /api/users` → list users (ADMIN only)  
+- `PATCH /api/users/{id}` → update user  
+- `DELETE /api/users/{id}` → delete user (ADMIN only)  
 
 ---
 
-### 👤 Users
-
-* `GET /api/users/me` → Get current user
-* `GET /api/users?page=0&size=10` → List users (**ADMIN only**)
-* `PATCH /api/users/{id}` → Update user (with rules)
-* `DELETE /api/users/{id}` → Delete user (**ADMIN only**)
-
----
-
-## 📄 Pagination Example
-
-```json id="c3x1bk"
-{
-  "content": [...],
-  "page": 0,
-  "pageSize": 10,
-  "numberOfElements": 10,
-  "totalElements": 100,
-  "totalPages": 10
-}
-```
-
----
-
-## ⚠️ Error Response Example
-
-```json id="9y0twb"
-{
-  "status": 403,
-  "error": "Forbidden",
-  "message": "Access denied",
-  "path": "/api/users",
-  "timestamp": "2026-04-15T12:00:00"
-}
-```
-
----
-
-## ▶️ Running the Project
+## ⚙️ Running the project
 
 ### 1. Clone the repository
 
-```id="7cfdj7"
-git clone https://github.com/D-michel-dev/user-management-api.git
-```
+
+git clone https://github.com/D-Michel-dev/user-management-api.git
+
 
 ### 2. Configure environment variables
 
-Set your database credentials:
+You should not store secrets in the code. Configure:
 
-```id="9zq3e1"
-SPRING_DATASOURCE_URL=...
-SPRING_DATASOURCE_USERNAME=...
-SPRING_DATASOURCE_PASSWORD=...
-```
+
+DB_USERNAME=
+DB_PASSWORD=
+JWT_SECRET=
+
+
+---
 
 ### 3. Run the application
 
-```id="o5u0bb"
+
 ./mvnw spring-boot:run
-```
+
 
 ---
 
-## 🧪 Future Improvements
+## 📖 API Documentation
 
-* JWT authentication
-* Docker containerization
-* API documentation (Swagger / OpenAPI)
-* Unit and integration tests
+Swagger UI:
+
+
+http://localhost:8080/swagger-ui.html
+
+
+---
+
+## 🧪 Notes
+
+- Passwords are encrypted using BCrypt
+- JWT is stateless (no session stored)
+- Security is handled via filter + Spring Security context
+- Errors follow a consistent JSON structure
 
 ---
 
-## 👨‍💻 About This Project
+## 📈 Future Improvements
 
-This project focuses on demonstrating:
-
-* Clean backend architecture
-* Real-world API design
-* Security best practices
-* Maintainable and scalable code
+- Unit and integration tests
+- Refresh token mechanism
+- Docker support
+- Rate limiting
 
 ---
+
+## 👨‍💻 About
+
+This project was built to practice backend development and understand how a real-world API works, including authentication, authorization, validation, and error handling.
 
 ## 👤 Author
 
 Douglas Michel
 https://www.linkedin.com/in/douglas-michel-dev/
 https://github.com/D-Michel-dev/
-
----
